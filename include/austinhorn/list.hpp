@@ -6,53 +6,174 @@
 //  Copyright © 2023 Austin Horn. All rights reserved.
 //
 
+////////////////////////////////////////////////////////////
+/// @struct __list_iterator
+///
+/// @brief List container iterator
+///
+/// @tparam _Tp Value type
+////////////////////////////////////////////////////////////
+/*
+template <typename _Tp>
+class __list_iterator : public __bidirectional_iterator_base<_Tp>
+{
+    public:
+        typedef _Tp                                       value_type;
+        typedef __bidirectional_iterator_base<value_type> iterator_base;
+        typedef typename iterator_base::iterator_category iterator_category;
+        typedef typename iterator_base::difference_type   difference_type;
+        typedef typename iterator_base::pointer           pointer;
+        typedef typename iterator_base::reference         reference;
+
+        __list_iterator(pointer __p) : __pointer_(__p) {}
+        ~__list_iterator() { __pointer_ = nullptr; }
+
+        reference operator*() const { return *__pointer_; }
+        pointer operator->() { return __pointer_; }
+        reference operator[](difference_type n) const { return *(__pointer_ + n); }
+        __list_iterator& operator++() { __pointer_ = __pointer_->__next_; return *this; }  
+        __list_iterator operator++(int) { __list_iterator __t(*this); ++(*this); return __t;}
+        __list_iterator& operator--() { __pointer_ = __pointer_->__prev_; return *this; }
+        __list_iterator operator--(int) { __list_iterator __t(*this); --__pointer_; return __t; }
+        __list_iterator& operator+=(difference_type n) { __pointer_ += n; return *this; }
+        __list_iterator& operator-=(difference_type n) { __pointer_ -= n; return *this; }
+
+        friend bool operator==(const __list_iterator& lhs, const __list_iterator& rhs) { return lhs.__pointer_ == rhs.__pointer_; }
+        friend bool operator!=(const __list_iterator& lhs, const __list_iterator& rhs) { return !(lhs == rhs); }
+        friend bool operator<(const __list_iterator& lhs, const __list_iterator& rhs) { return lhs.__pointer_ < rhs.__pointer_; }
+        friend bool operator>(const __list_iterator& lhs, const __list_iterator& rhs) { return rhs < lhs; }
+        friend bool operator<=(const __list_iterator& lhs, const __list_iterator& rhs) { return !(rhs < lhs); }
+        friend bool operator>=(const __list_iterator& lhs, const __list_iterator& rhs) { return !(lhs < rhs); }
+        friend __list_iterator operator+(const __list_iterator& it, difference_type n) { __list_iterator temp = it; temp += n; return temp; }
+        friend __list_iterator operator+(difference_type n, const __list_iterator& it) { return it + n; }
+        friend __list_iterator operator-(const __list_iterator& it, difference_type n) { __list_iterator temp = it; temp -= n; return temp; }
+        friend difference_type operator-(const __list_iterator& lhs, const __list_iterator& rhs) { return lhs.__pointer_ - rhs.__pointer_; }
+
+    private:
+        pointer __pointer_;
+};
+*/
+
 #ifndef list_hpp
 #define list_hpp
 
 #include <iostream>
+#include <austinhorn/iterator.hpp>
 
 template <typename _Tp> struct __list_node;
+template <typename _Tp> struct __list_node_base;
+template <typename _Tp> class list;
 
-////////////////////////////////////////////////////////////
-/// \struct __list_node
+///////////////////////////////////////////////////////////////
+/// @struct __list_node_base
 ///
-/// \brief
-////////////////////////////////////////////////////////////
+/// @brief Represents base class for a list node object 
+///
+/// @tparam _Tp Value type
+///////////////////////////////////////////////////////////////
 template <typename _Tp> 
-struct __list_node {
-    __list_node(_Tp __value, __list_node<_Tp>* __next = nullptr) 
-        : __value_{__value}
-        , __next_{__next} {}
+struct __list_node_base 
+{
+    typedef __list_node<_Tp> __node;
+    typedef __node *         __node_pointer;
 
-    typedef __list_node<_Tp>* node_pointer;
-    
-    _Tp          __value_; ///< Contains object data
-    node_pointer __next_;  ///< Points to next Node in list
+    __node_pointer __next_{nullptr};  
+    __node_pointer __prev_{nullptr}; 
+
+    operator __node_pointer()
+        { return *this; }
 };
 
 ////////////////////////////////////////////////////////////
-/// \template
+/// @struct __list_node
+///
+/// @brief Node object for list containers
+///
+/// @tparam _Tp Value type
+////////////////////////////////////////////////////////////
+template <typename _Tp> 
+struct __list_node 
+    : public __list_node_base<_Tp> 
+{
+    typedef _Tp value_type;
+    typedef __list_node_base<_Tp>           __base;
+    typedef typename __base::__node_pointer __node_pointer;
+
+    __list_node(const _Tp& __v, __node_pointer __n = nullptr, __node_pointer __p = nullptr) 
+        : __value_{__v} 
+        {
+            __base::__next_ = __n;
+            __base::__prev_ = __p;
+        }
+
+    constexpr bool operator()( const __list_node& lhs, const __list_node& rhs ) const { return lhs.__value_ < rhs.__value_; }
+
+    _Tp __value_;
+}; 
+
+
+
+template <typename _Tp>
+class __list_iterator 
+{
+        typedef _Tp * pointer;
+        typedef _Tp & reference;
+        typedef std::ptrdiff_t difference_type;
+
+        pointer __pointer_;
+        template<class> friend class list;
+    public:
+        __list_iterator(pointer __p) : __pointer_(__p) {}
+        ~__list_iterator() { __pointer_ = nullptr; }
+
+        reference operator*() const { return *__pointer_; }
+        pointer operator->() { return __pointer_; }
+        reference operator[](difference_type n) const { return *(__pointer_ + n); }
+        
+        __list_iterator& operator++() { __pointer_ = __pointer_->__next_; return *this; }  
+        __list_iterator operator++(int) { __list_iterator __t(*this); ++(*this); return __t;}
+        __list_iterator& operator--() { __pointer_ = __pointer_->__prev_; return *this; }
+        __list_iterator operator--(int) { __list_iterator __t(*this); --__pointer_; return __t; }
+};
+
+////////////////////////////////////////////////////////////
 /// \class list
 ///
-/// \ingroup LinkedLists
+/// \ingroup Containers
 ///
 /// \brief Uni-directional linked list
 ////////////////////////////////////////////////////////////
 template <typename _Tp>
 class list {
-    protected:
+    private:
 
-        typedef typename ::__list_node<_Tp>::node_pointer node_pointer;
-        typedef _Tp value_type;
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = _Tp;
+        using pointer           = value_type*;  
+        using reference         = value_type&;
+        using list_node         = __list_node<value_type>;
+        using node_pointer      = list_node*;
+        using iterator = __list_iterator<node_pointer>;
+
+        node_pointer  m_root;
+        node_pointer* m_dp;
+        std::size_t   m_size;
 
     public:
+
+
+        iterator begin()
+        {
+            return iterator((&m_root));
+        }
     
         ////////////////////////////////////////////////////////////
         /// \brief Default Constructor
         ////////////////////////////////////////////////////////////
         list() 
             : m_root{nullptr}
-            , m_envPtr(nullptr)
+            , m_dp(nullptr)
             , m_size{0}
             { }
 
@@ -75,10 +196,27 @@ class list {
         {
             if ( pushingToBack() )
             {
-                __list_node<_Tp> *p = *this->m_envPtr;
-                *this->m_envPtr = new __list_node<_Tp>(data, p);
+                node_pointer p = *this->m_dp;
+                *this->m_dp = new __list_node<_Tp>(data, p);
             }
             
+            this->m_size++;
+        }
+
+        ////////////////////////////////////////////////////////////
+        /// \function push_front
+        ///
+        /// \brief Create node and inserts at front of list
+        ///
+        /// \param data Reference to object being inserted
+        ////////////////////////////////////////////////////////////
+        void push_front(const value_type& data)
+        {
+            this->m_dp = &this->m_root;
+
+            node_pointer p = new __list_node<_Tp>(data, *this->m_dp);
+            this->m_root = p;
+
             this->m_size++;
         }
 
@@ -91,17 +229,16 @@ class list {
         ////////////////////////////////////////////////////////////
         void remove(const value_type& data)
         {
-            __list_node<_Tp> *p = find(data);
+            node_pointer p = find(data);
             
             if( p )
             {
-                __list_node<_Tp> *q = *this->m_envPtr;
-                *this->m_envPtr = (*this->m_envPtr)->__next_;
+                node_pointer q = *this->m_dp;
+                *this->m_dp = (*this->m_dp)->__next_;
                 q->__next_ = nullptr;
                 delete q;
+                this->m_size--;
             }
-            
-            this->m_size--;
         }
 
         ////////////////////////////////////////////////////////////
@@ -115,12 +252,12 @@ class list {
         ////////////////////////////////////////////////////////////
         node_pointer find(const value_type& data)
         {
-            this->m_envPtr = &this->m_root;
+            this->m_dp = &this->m_root;
             
-            while( *this->m_envPtr  &&  (*this->m_envPtr)->__value_ != data )
-                this->m_envPtr = &(*this->m_envPtr)->__next_;
+            while( *this->m_dp  &&  (*this->m_dp)->__value_ != data )
+                this->m_dp = &(*this->m_dp)->__next_;
             
-            return *this->m_envPtr;
+            return *this->m_dp;
         }
 
         ////////////////////////////////////////////////////////////
@@ -144,7 +281,8 @@ class list {
         {
             altClear(this->m_root);
             this->m_root = nullptr;
-            this->m_envPtr = nullptr;
+            this->m_dp = nullptr;
+            this->m_size = 0;
         }
 
         ////////////////////////////////////////////////////////////
@@ -173,7 +311,7 @@ class list {
             if ( p )
             {
                 // Pointer to node's next node (possibly null)
-                __list_node<_Tp> *q = p->__next_;
+                node_pointer q = p->__next_;
                 
                 // Break link to next node
                 p->__next_ = nullptr;
@@ -209,22 +347,13 @@ class list {
         ////////////////////////////////////////////////////////////
         bool pushingToBack()
         {
-            this->m_envPtr = &this->m_root;
+            this->m_dp = &this->m_root;
             
-            while( *this->m_envPtr )
-                this->m_envPtr = &(*this->m_envPtr)->__next_;
+            while( *this->m_dp )
+                this->m_dp = &(*this->m_dp)->__next_;
 
-            return !(*this->m_envPtr);
-        }
-    
-    private:
-    
-        node_pointer  m_root;
-        node_pointer* m_envPtr;
-        std::size_t   m_size;
-        
+            return !(*this->m_dp);
+        }        
 };
-
-
 
 #endif /* list_hpp */
