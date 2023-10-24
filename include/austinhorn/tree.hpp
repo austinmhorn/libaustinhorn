@@ -57,14 +57,14 @@ template <
         typedef node_type *             node_pointer;
 
         node_pointer  __root_;
-        node_pointer* __dp_;
+        node_pointer* __dptr_;
         unsigned      __size_;
-        unsigned      __levels_;
+        unsigned      __lvls_;
 
     public:
     
-        tree() : __root_(nullptr), __dp_(nullptr), __size_(0), __levels_(0) {}
-        ~tree() { altDelete(__root_); __root_ = nullptr; __size_ = 0; __levels_ = 0; }
+        tree() : __root_(nullptr), __dptr_(nullptr), __size_(0), __lvls_(0) {}
+        ~tree() { altDelete(__root_); __root_ = nullptr; __size_ = 0; __lvls_ = 0; }
         
         void clear() 
         { 
@@ -75,22 +75,22 @@ template <
         
         bool isThere(_Tp &value)
         {
-            __dp_ = &__root_;
+            __dptr_ = &__root_;
             
-            while( *__dp_  &&  (*__dp_)->__value_ != value )
-                if((*__dp_)->__value_ > value)
-                    __dp_=&(*__dp_)->__left_;
+            while( *__dptr_  &&  (*__dptr_)->__value_ != value )
+                if((*__dptr_)->__value_ > value)
+                    __dptr_=&(*__dptr_)->__left_;
                 else
-                    __dp_=&(*__dp_)->__right_;
+                    __dptr_=&(*__dptr_)->__right_;
             
-            return *__dp_;
+            return *__dptr_;
         }
         void insert(_Tp value)
         {
             if(  !isThere(value) )
             {
-                *__dp_ = new __tree_node(value);
-                (*__dp_)->__value_=value;
+                *__dptr_ = new __tree_node(value);
+                (*__dptr_)->__value_=value;
                 
                 __size_++;
             }
@@ -100,40 +100,40 @@ template <
             if ( isThere(value) )
             {
                 /// Node does NOT have 2 children
-                if ( !(*__dp_)->__left_ || !(*__dp_)->__right_ )
+                if ( !(*__dptr_)->__left_ || !(*__dptr_)->__right_ )
                 {
-                    if ( (*__dp_)->__left_ )
+                    if ( (*__dptr_)->__left_ )
                     {
-                        node_pointer p = *__dp_;
-                        p = *__dp_;
-                        *__dp_ = (*__dp_)->__left_;
+                        node_pointer p = *__dptr_;
+                        p = *__dptr_;
+                        *__dptr_ = (*__dptr_)->__left_;
                         delete p;
                     }
                     else
                     {
-                        node_pointer p = *__dp_;
-                        p = *__dp_;
-                        *__dp_ = (*__dp_)->__right_;
+                        node_pointer p = *__dptr_;
+                        p = *__dptr_;
+                        *__dptr_ = (*__dptr_)->__right_;
                         delete p;
                     }
                 }
                 /// Node DOES have 2 children
                 else
                 {
-                    node_pointer *dp = __dp_;
+                    node_pointer *dp = __dptr_;
                     
-                    dp = &(*__dp_)->__left_;
+                    dp = &(*__dptr_)->__left_;
                     
                     while ( (*dp)->__right_ )
                         dp = &(*dp)->__right_;
                     
-                    node_pointer p = *__dp_;
+                    node_pointer p = *__dptr_;
                     node_pointer q = *dp;
                     
                     *dp = q->__left_;
                     q->__left_ = p->__left_;
                     q->__right_ = p->__right_;
-                    *__dp_ = q;
+                    *__dptr_ = q;
                     
                     delete p;
                 }
@@ -145,39 +145,39 @@ template <
         {
             if ( isThere(value) ) /// Verify value exists in the tree
             {
-                if ( !(*__dp_)->__left_ || !(*__dp_)->__right_ ) /// Node does NOT have 2 children
+                if ( !(*__dptr_)->__left_ || !(*__dptr_)->__right_ ) /// Node does NOT have 2 children
                 {
-                    if ( (*__dp_)->__left_ )
+                    if ( (*__dptr_)->__left_ )
                     {
-                        node_pointer p = *__dp_;
-                        p = *__dp_;
-                        *__dp_ = (*__dp_)->__left_;
+                        node_pointer p = *__dptr_;
+                        p = *__dptr_;
+                        *__dptr_ = (*__dptr_)->__left_;
                         delete p;
                     }
                     else
                     {
-                        node_pointer p = *__dp_;
-                        p = *__dp_;
-                        *__dp_ = (*__dp_)->__right_;
+                        node_pointer p = *__dptr_;
+                        p = *__dptr_;
+                        *__dptr_ = (*__dptr_)->__right_;
                         delete p;
                     }
                 }
                 else /// Node DOES have 2 children
                 {
-                    node_pointer *dp = __dp_;
+                    node_pointer *dp = __dptr_;
                     
-                    dp = &(*__dp_)->__left_;
+                    dp = &(*__dptr_)->__left_;
                     
                     while ( (*dp)->__right_ )
                         dp = &(*dp)->__right_;
                     
-                    node_pointer p = *__dp_;
+                    node_pointer p = *__dptr_;
                     node_pointer q = *dp;
                     
                     *dp = q->__left_;
                     q->__left_ = p->__left_;
                     q->__right_ = p->__right_;
-                    *__dp_ = q;
+                    *__dptr_ = q;
                     
                     delete p;
                     
@@ -287,9 +287,9 @@ template <
         ////////////////////////////////////////////////////////////////////////////
         int cntLvls(node_pointer p)
         {
-            __levels_ = 0;
+            __lvls_ = 0;
             altCntLvls(p, 1);
-            return __levels_;
+            return __lvls_;
         }
         ////////////////////////////////////////////////////////////////////////////
         ///< @function altCntLevels
@@ -304,8 +304,8 @@ template <
                 return;
             else
             {
-                if (i > __levels_)
-                    __levels_ = i; 
+                if (i > __lvls_)
+                    __lvls_ = i; 
 
                 altCntLvls(p->__left_, i+1);
                 altCntLvls(p->__right_, i+1);

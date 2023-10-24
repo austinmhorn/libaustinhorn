@@ -8,7 +8,9 @@
 #include <utility>
 
 template <long FROM, long TO>
-struct range: public range_iterator<FROM, TO> {
+struct range
+    : public range_iterator<FROM, TO> 
+{
     
     typename range_iterator<FROM, TO>::reference front() noexcept {return range_iterator<FROM, TO>(FROM);}
     typename range_iterator<FROM, TO>::reference back() noexcept {return TO;}

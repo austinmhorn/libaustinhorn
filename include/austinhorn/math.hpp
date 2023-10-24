@@ -17,12 +17,17 @@ template <typename T, typename U>
 auto divide(T t, U u) -> decltype(t - u) 
     { return t / u; }
 
+// TODO: half_of(T value) - int, float, double, long
+// TODO: qrtr_of(T value) - int, float, double, long
+// TODO: egth_of(T value) - int, float, double, long
+
 
 #else
 #endif
 
 #include <cmath>
 #include <list>
+#include <stack>
 
 constexpr unsigned factorial(unsigned n)
     noexcept { return (n>1) ? n*factorial(n-1) : 1; }
