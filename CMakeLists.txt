@@ -26,10 +26,6 @@ set( BUILD_SHARED_LIBS ${AUSTINHORN_BUILD_SHARED_LIBS} )
 
 # Find OpenGL
 find_package( OpenGL REQUIRED )
-# Find SFML
-if( NOT TARGET sfml-graphics )
-    find_package( SFML 2.5 REQUIRED COMPONENTS graphics window system network audio )
-endif()
 
 # Set source and include paths
 set( INCLUDE_PATH "${PROJECT_SOURCE_DIR}/include/" )
