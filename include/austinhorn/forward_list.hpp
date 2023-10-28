@@ -13,9 +13,33 @@
 #include <cassert>
 #include <austinhorn/iterator.hpp>
 
+//////////////////////////////////////////////////////////
+/// @brief Template specializations
+/// @struct __list_node
+/// @struct __list_node_base
+/// @class __forward_list_imp
+/// @class forward_list
+/// @class __list_imp
+/// @class list
+/// @class __const_list_iterator
+/// @class __reverse_list_iterator
+/// @class __const_reverse_list_iterator
+//////////////////////////////////////////////////////////
 template <typename _Tp> struct __list_node;
 template <typename _Tp> struct __list_node_base;
+template <typename _Tp> class __forward_list_imp;
+template <typename _Tp> class forward_list;
+template <typename _Tp> class __list_imp;
+template <typename _Tp> class list;
+template <typename _Tp> class __const_list_iterator;
+template <typename _Tp> class __reverse_list_iterator;
+template <typename _Tp> class __const_reverse_list_iterator;
 
+//////////////////////////////////////////////////////////
+/// @struct __list_node_pointer_traits
+/// @brief Pointer traits for list node
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
 template <typename _Tp>
 struct __list_node_pointer_traits
 {
@@ -23,10 +47,11 @@ struct __list_node_pointer_traits
     typedef __list_node<_Tp>      * __node_pointer;
 };
 
-
-
-
-
+//////////////////////////////////////////////////////////
+/// @struct __list_node_base
+/// @brief Base of list node
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
 template <typename _Tp>
 struct __list_node_base
 {
@@ -34,35 +59,35 @@ struct __list_node_base
     typedef typename __node_traits::__node_pointer  __node_pointer;
     typedef typename __node_traits::__base_pointer  __base_pointer;
 
+    __node_pointer __prev_;
     __node_pointer __next_;
 };
 
-
-
-
+//////////////////////////////////////////////////////////
+/// @struct __list_node
+/// @brief List node
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
 template <typename _Tp> 
 struct __list_node 
     : public __list_node_base<_Tp> 
 {
-    typedef __list_node_base<_Tp>           __base;
-    typedef typename __base::__node_pointer __node_pointer;
+    typedef __list_node_base<_Tp>            __base;
+    typedef typename __base::__node_pointer  __node_pointer;
 
     _Tp __value_;
 
-    __list_node(const _Tp& __v, __node_pointer __n = nullptr) 
-        { __value_ = __v; __base::__next_ = __n; }
+    __list_node(const _Tp& __v, __node_pointer __p = nullptr, __node_pointer __n = nullptr) 
+        { __value_ = __v; __base::__prev_ = __p; __base::__next_ = __n; }
+
+    friend bool operator<(const __list_node<_Tp>& lhs, const __list_node<_Tp>& rhs) { return lhs.__value_ < rhs.__value_; }
 }; 
 
-
-template <typename _Tp> class list;
-template <typename _Tp> class __list_imp;
-template <typename _Tp> class __list_const_iterator;
-
-
-
-
-
-
+//////////////////////////////////////////////////////////
+/// @class __list_iterator
+/// @brief Forward list node iterator
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
 template <typename _Tp>
 class __list_iterator
 {
@@ -73,9 +98,11 @@ class __list_iterator
 
     explicit __list_iterator(__node_pointer __p) noexcept : __pointer_(__p) {}
 
-    template<typename> friend class list;
+    template<typename> friend class __forward_list_imp;
+    template<typename> friend class forward_list;
     template<typename> friend class __list_imp;
-    template<typename> friend class __list_const_iterator;
+    template<typename> friend class list;
+    template<typename> friend class __const_list_iterator;
 public:
     typedef __input_iterator_base<_Tp>  iterator_category;
     typedef _Tp                         value_type;
@@ -84,7 +111,7 @@ public:
     typedef std::ptrdiff_t              difference_type;
 
     __list_iterator() noexcept : __pointer_(nullptr) { }
-    __list_iterator(const __list_const_iterator<_Tp>& __p) noexcept : __pointer_(__p.__pointer_) {}
+    __list_iterator(const __const_list_iterator<_Tp>& __p) noexcept : __pointer_(__p.__pointer_) {}
 
     __node_pointer& __as_pointer() { return __pointer_; }
 
@@ -101,23 +128,26 @@ public:
 
 };
 
-///////////////////////////////////////////////////
-/// @class __list_const_iterator
-/// @brief
-/// @tparam _Tp
-///////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+/// @class __const_list_iterator
+/// @brief Constant forward list node iterator
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
 template <typename _Tp>
-class __list_const_iterator
+class __const_list_iterator
 {
     typedef __list_node_pointer_traits<_Tp>         __node_traits;
     typedef typename __node_traits::__node_pointer  __node_pointer;
 
     __node_pointer __pointer_;
 
-    explicit __list_const_iterator(__node_pointer __p) noexcept : __pointer_(__p) {}
+    explicit __const_list_iterator(__node_pointer __p) noexcept : __pointer_(__p) {}
 
-    template<typename> friend class list;
+
+    template<typename> friend class __forward_list_imp;
+    template<typename> friend class forward_list;
     template<typename> friend class __list_imp;
+    template<typename> friend class list;
     template<typename> friend class __list_iterator;
 public:
     typedef __input_iterator_base<_Tp>   iterator_category;
@@ -126,30 +156,118 @@ public:
     typedef value_type*                  pointer;
     typedef std::ptrdiff_t               difference_type;
 
-    __list_const_iterator() noexcept : __pointer_(nullptr) { }
-    __list_const_iterator(const __list_iterator<_Tp>& __p) noexcept : __pointer_(__p.__pointer_) {}
+    __const_list_iterator() noexcept : __pointer_(nullptr) { }
+    __const_list_iterator(const __list_iterator<_Tp>& __p) noexcept : __pointer_(__p.__pointer_) {}
 
     reference operator*() const { return __pointer_->__value_; }
     pointer operator->() const { return &__pointer_->__value_; }
 
-    __list_const_iterator& operator++() { __pointer_ = __pointer_->__next_; return *this; }
-    __list_const_iterator operator++(int) { __list_const_iterator __t(*this); ++(*this); return __t; }
-    __list_const_iterator& operator--() {  __pointer_ = __pointer_->__prev_; return *this; }
-    __list_const_iterator operator--(int) { __list_const_iterator __t(*this); --(*this); return __t; }
+    __const_list_iterator& operator++() { __pointer_ = __pointer_->__next_; return *this; }
+    __const_list_iterator operator++(int) { __const_list_iterator __t(*this); ++(*this); return __t; }
+    __const_list_iterator& operator--() {  __pointer_ = __pointer_->__prev_; return *this; }
+    __const_list_iterator operator--(int) { __const_list_iterator __t(*this); --(*this); return __t; }
 
     __node_pointer& __as_pointer() { return __pointer_; }
 
-    friend bool operator==(const __list_const_iterator& __x, const __list_const_iterator& __y) { return __x.__pointer_ == __y.__pointer_; }
-    friend bool operator!=(const __list_const_iterator& __x, const __list_const_iterator& __y) { return !(__x == __y); }
+    friend bool operator==(const __const_list_iterator& __x, const __const_list_iterator& __y) { return __x.__pointer_ == __y.__pointer_; }
+    friend bool operator!=(const __const_list_iterator& __x, const __const_list_iterator& __y) { return !(__x == __y); }
 };
 
 
-
-
-
-
+//////////////////////////////////////////////////////////
+/// @class __reverse_list_iterator
+/// @brief Reverse list node iterator
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
 template <typename _Tp>
-class __list_imp
+class __reverse_list_iterator
+{
+    typedef __list_node_pointer_traits<_Tp>         __node_traits;
+    typedef typename __node_traits::__node_pointer   __node_pointer;
+
+    __node_pointer __pointer_;
+
+    explicit __reverse_list_iterator(__node_pointer __p) noexcept : __pointer_(__p) {}
+
+    template<typename> friend class __forward_list_imp;
+    template<typename> friend class forward_list;
+    template<typename> friend class __list_imp;
+    template<typename> friend class list;
+    template<typename> friend class __const_reverse_list_iterator;
+public:
+    typedef __input_iterator_base<_Tp>  iterator_category;
+    typedef _Tp                         value_type;
+    typedef value_type&                 reference;
+    typedef value_type*                 pointer;
+    typedef std::ptrdiff_t              difference_type;
+
+    __reverse_list_iterator() noexcept : __pointer_(nullptr) { }
+
+    __node_pointer& __as_pointer() { return __pointer_; }
+
+    reference operator*() const { return __pointer_->__value_; }
+    pointer operator->() const { return &__pointer_->__value_; }
+
+    __reverse_list_iterator& operator++() { __pointer_ = __pointer_->__prev_; return *this; }
+    __reverse_list_iterator operator++(int) { __reverse_list_iterator __t(*this); ++(*this); return __t; }
+    __reverse_list_iterator& operator--() { __pointer_ = __pointer_->__next_; return *this; }
+    __reverse_list_iterator operator--(int) { __reverse_list_iterator __t(*this); --(*this); return __t; }
+
+    friend bool operator==(const __reverse_list_iterator& __x, const __reverse_list_iterator& __y) { return __x.__pointer_ == __y.__pointer_; }
+    friend bool operator!=(const __reverse_list_iterator& __x, const __reverse_list_iterator& __y) { return !(__x == __y); }
+
+};
+
+//////////////////////////////////////////////////////////
+/// @class __const_reverse_list_iterator
+/// @brief Constant reverse list node iterator
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
+template <typename _Tp>
+class __const_reverse_list_iterator
+{
+    typedef __list_node_pointer_traits<_Tp>         __node_traits;
+    typedef typename __node_traits::__node_pointer   __node_pointer;
+
+    __node_pointer __pointer_;
+
+    explicit __const_reverse_list_iterator(__node_pointer __p) noexcept : __pointer_(__p) {}
+
+    template<typename> friend class __forward_list_imp;
+    template<typename> friend class forward_list;
+    template<typename> friend class __list_imp;
+    template<typename> friend class list;
+public:
+    typedef __input_iterator_base<_Tp>  iterator_category;
+    typedef _Tp                         value_type;
+    typedef value_type&                 reference;
+    typedef value_type*                 pointer;
+    typedef std::ptrdiff_t              difference_type;
+
+    __const_reverse_list_iterator() noexcept : __pointer_(nullptr) { }
+
+    __node_pointer& __as_pointer() { return __pointer_; }
+
+    reference operator*() const { return __pointer_->__value_; }
+    pointer operator->() const { return &__pointer_->__value_; }
+
+    __const_reverse_list_iterator& operator++() { __pointer_ = __pointer_->__prev_; return *this; }
+    __const_reverse_list_iterator operator++(int) { __const_reverse_list_iterator __t(*this); ++(*this); return __t; }
+    __const_reverse_list_iterator& operator--() { __pointer_ = __pointer_->__next_; return *this; }
+    __const_reverse_list_iterator operator--(int) { __const_reverse_list_iterator __t(*this); --(*this); return __t; }
+
+    friend bool operator==(const __const_reverse_list_iterator& __x, const __const_reverse_list_iterator& __y) { return __x.__pointer_ == __y.__pointer_; }
+    friend bool operator!=(const __const_reverse_list_iterator& __x, const __const_reverse_list_iterator& __y) { return !(__x == __y); }
+
+};
+
+//////////////////////////////////////////////////////////
+/// @class __forward_list_imp
+/// @brief Implementation of forward_list
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
+template <typename _Tp>
+class __forward_list_imp
 {
     private:
         typedef __list_node<_Tp>  __node;
@@ -161,26 +279,29 @@ class __list_imp
         typedef value_type &                        reference;
         typedef const value_type                    const_reference;
         typedef __list_iterator<value_type>         iterator;
-        typedef __list_const_iterator<value_type>   const_iterator;
+        typedef __const_list_iterator<value_type>   const_iterator;
 
         __node_pointer __head_;
         __node_pointer __tail_;
         __env_pointer  __dptr_;
         std::size_t    __size_;
 
-        __list_imp() : __head_(nullptr), __tail_(nullptr), __dptr_(nullptr), __size_(0) {}
-        ~__list_imp() = default;
+        __forward_list_imp() : __head_(nullptr), __tail_(nullptr), __dptr_(nullptr), __size_(0) {}
+        virtual ~__forward_list_imp() 
+        {
+            clear();
+        }
 
-        __list_imp(const __list_imp&) = default;
-        __list_imp& operator=(const __list_imp&) = default;
+        __forward_list_imp(const __forward_list_imp&) = default;
+        __forward_list_imp& operator=(const __forward_list_imp&) = default;
 
-        __list_imp(__list_imp&&) noexcept = default;
-        __list_imp& operator=(__list_imp&&) noexcept = default;
+        __forward_list_imp(__forward_list_imp&&) noexcept = default;
+        __forward_list_imp& operator=(__forward_list_imp&&) noexcept = default;
 
         void push_front(const value_type& __v)
         {
             __dptr_ = &__head_;
-            __node_pointer p = new __node(__v, {(empty()) ? nullptr : *__dptr_} );
+            __node_pointer p = new __node(__v, nullptr, {(empty()) ? nullptr : *__dptr_} );
             __head_ = p;
 
             if ( empty() )
@@ -191,7 +312,7 @@ class __list_imp
         void push_front(value_type&& __v)
         {
             __dptr_ = &__head_;
-            __node_pointer p = new __node(std::move(__v), {(empty()) ? nullptr : *__dptr_}  );
+            __node_pointer p = new __node(std::move(__v), nullptr, {(empty()) ? nullptr : *__dptr_} );
             __head_ = p;
 
             if ( empty() )
@@ -283,6 +404,7 @@ class __list_imp
         void clear() noexcept
         {
             __recursive_destroy(__head_);
+            __head_ = nullptr;
             __tail_ = nullptr;
             __dptr_ = nullptr;
             __size_ = 0;
@@ -293,48 +415,6 @@ class __list_imp
             std::cout << std::endl;
         }
 
-        template <typename _ForwardIter>
-        _ForwardIter unique(_ForwardIter first, _ForwardIter last)
-        {
-            if (first == last)
-                return last;
-                
-            _ForwardIter result = first;
-            while (++first != last)
-                if (!(*result == *first) && ++result != first)
-                    *result = std::move(*first);
-            return ++result;
-        }
-
-        template <typename _ForwardIter>
-        _ForwardIter remove(_ForwardIter first, _ForwardIter last, const value_type& value)
-        {
-            first = std::find(first, last, value);
-            if (first != last)
-                for (_ForwardIter i = first; ++i != last;)
-                    if (!(*i == value))
-                        *first++ = std::move(*i);
-            return first;
-        }
-
-        template <typename __ForwardIter, typename _UnaryPred>
-        __ForwardIter remove_if(__ForwardIter first, __ForwardIter last, _UnaryPred pred)
-        {
-            first = std::find_if(first, last, pred);
-            if (first != last)
-                for (__ForwardIter i = first; ++i != last;)
-                    if (!pred(*i))
-                        *first++ = std::move(*i);
-            return first;
-        }
-
-        /// TODO: reverse - reverses the order of the elements 
-
-        template <typename _Compare>
-        void sort(_Compare comp)
-        {
-            
-        }
 
         void __destroy_node(const value_type& __v)
         {
@@ -369,36 +449,17 @@ class __list_imp
 
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ////////////////////////////////////////////////////////////////
 /// @class forward_list
-/// @brief 
-/// @tparam _Tp 
+/// @brief Singly linked list
+/// @tparam _Tp Value type list is storing
 ////////////////////////////////////////////////////////////////
 template <typename _Tp>
 class forward_list 
-    : private __list_imp<_Tp>
+    : private __forward_list_imp<_Tp>
 {
     private:
-        typedef __list_imp<_Tp> base;
+        typedef __forward_list_imp<_Tp> base;
     public:        
         typedef typename base::value_type      value_type;
         typedef typename base::pointer         pointer;
@@ -407,8 +468,8 @@ class forward_list
         typedef typename base::iterator        iterator;
         typedef typename base::const_iterator  const_iterator;
     
-        forward_list() : base::__list_imp() {}
-        ~forward_list() { base::clear(); }
+        forward_list() : base::__forward_list_imp() {}
+        virtual ~forward_list() = default;
         forward_list(const forward_list&) = default;
         forward_list& operator=(const forward_list&) = default;
         forward_list(forward_list&&) noexcept = default;
@@ -435,24 +496,6 @@ class forward_list
         const_iterator erase(const_iterator pos) { return base::erase(pos); }
         const_iterator erase(const_iterator first, const_iterator last) { return base::erase(first, last); }
         iterator find(const value_type& __v) { return base::find(__v); }
-
-        /*
-        iterator erase_after(const_iterator pos) { return base::erase_after(pos); }
-        iterator erase_after(const_iterator first, const_iterator last) { return base::erase_after(first, last); }
-        
-        template <typename _ForwardIter>
-        _ForwardIter unique(_ForwardIter first, _ForwardIter last)
-            { return base::unique(begin(), end()); }
-        template <typename _ForwardIter>
-        _ForwardIter remove(_ForwardIter first, _ForwardIter last, const value_type& value)
-            { return base::remove(first, last, value); }
-        template <typename __ForwardIterer, typename _UnaryPred>
-        __ForwardIterer remove_if(__ForwardIterer first, __ForwardIterer last, _UnaryPred pred)
-            { return base::remove_if(first, last, pred); }
-        template <typename _Compare>
-        void sort(_Compare comp)
-            { base::sort(comp); }
-        */
 
 };
 
