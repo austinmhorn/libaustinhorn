@@ -1,0 +1,27 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: ${{ matrix.platform.name }} ${{ matrix.config.name }}
+    runs-on: ${{ matrix.platform.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - { name: Shared, flags: -DBUILD_SHARED_LIBS=ON -DAUSTINHORN_BUILD_SHARED_LIBS=ON }
+        - { name: Static, flags: -DBUILD_SHARED_LIBS=OFF -DAUSTINHORN_BUILD_SHARED_LIBS=OFF }
+
+    steps:
+    - name: austinhorn - Checkout Code
+      uses: actions/checkout@v3
+
+    - name: leafy - Configure CMake
+      shell: bash
+      run: cmake -S $GITHUB_WORKSPACE -B $GITHUB_WORKSPACE/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/install -DCMAKE_VERBOSE_MAKEFILE=ON -DAUSTINHORN_BUILD_EXAMPLES=ON ${{matrix.platform.flags}} ${{matrix.config.flags}}
+
+    - name: leafy - Build
+      shell: bash
+      run: cmake --build $GITHUB_WORKSPACE/build --config Release --target install
