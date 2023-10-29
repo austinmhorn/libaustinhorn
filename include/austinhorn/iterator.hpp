@@ -67,7 +67,6 @@ class range_iterator: public __forward_iterator_base<long>
         explicit range_iterator(long first = 0) : __value(first) {}
 
         reference operator*() {return __value;}
-        const_reference operator*() const {return __value;}
         
         range_iterator& operator++() {__value = TO >= FROM ? __value + 1 : __value - 1; return *this;}
         range_iterator operator++(int) {range_iterator retval = *this; ++(*this); return retval;}
