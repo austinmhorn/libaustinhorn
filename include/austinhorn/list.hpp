@@ -1,9 +1,9 @@
 #ifndef __list_hpp
 #define __list_hpp
 
-#include <regex>
 #include <iostream>
 #include <cassert>
+#include <limits>
 #include <austinhorn/forward_list.hpp>
 
 #define assertm(exp, msg) assert(((void)msg, exp))
