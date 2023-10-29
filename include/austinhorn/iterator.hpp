@@ -58,10 +58,10 @@ class forward_iterator : public __forward_iterator_base<_Tp>
 template <long FROM, long TO>
 class range_iterator: public __forward_iterator_base<long> 
 {
+    protected:
         typedef __forward_iterator_base<long>  base;
         typedef typename base::pointer         pointer;
         typedef typename base::reference       reference;
-    protected:
         long __value = FROM;
     public:
         explicit range_iterator(long first = 0) : __value(first) {}
