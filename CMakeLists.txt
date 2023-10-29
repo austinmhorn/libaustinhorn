@@ -24,9 +24,6 @@ option( AUSTINHORN_BUILD_EXAMPLES    "Build examples."                  ON )
 option( AUSTINHORN_BUILD_DOC         "Generate API documentation."      OFF)
 set( BUILD_SHARED_LIBS ${AUSTINHORN_BUILD_SHARED_LIBS} )
 
-# Find OpenGL
-find_package( OpenGL REQUIRED )
-
 # Set source and include paths
 set( INCLUDE_PATH "${PROJECT_SOURCE_DIR}/include/" )
 set( SOURCE_PATH "${PROJECT_SOURCE_DIR}/src/" )
@@ -62,11 +59,9 @@ endif ()
 # Tell the compiler to export when necessary.
 set_target_properties( ${TARGET} PROPERTIES DEFINE_SYMBOL AUSTINHORN_EXPORTS )
 
-target_link_libraries( ${TARGET} PUBLIC ${OPENGL_gl_LIBRARY} )
-
 # Platform- and compiler-specific options.
 if( WIN32 )
-    option( AUSTINHORN_STATIC_STD_LIBS "Use statically linked standard/runtime libraries? This option must match the one used for SFML." OFF)
+    option( AUSTINHORN_STATIC_STD_LIBS "Use statically linked standard/runtime libraries?" OFF)
 
     # Determine whether we're dealing with a TDM compiler or not
     if( CMAKE_COMPILER_IS_GNUCXX )
@@ -110,16 +105,10 @@ if( WIN32 )
     set( SHARE_PATH "." )
     set( LIB_PATH "lib" )
 elseif( APPLE )
-    find_library( FOUNDATION_LIBRARY Foundation REQUIRED )
-    find_library( COREGRAPHICS_LIBRARY CoreGraphics REQUIRE D)
-
-    target_link_libraries( ${TARGET} PUBLIC ${FOUNDATION_LIBRARY} ${COREGRAPHICS_LIBRARY} )
-    set( SHARE_PATH "${CMAKE_INSTALL_PREFIX}/share/leafy" )
+    set( SHARE_PATH "${CMAKE_INSTALL_PREFIX}/share/austinhorn" )
     set( LIB_PATH "lib" )
 elseif( "${CMAKE_SYSTEM_NAME}" MATCHES "Linux" )
-    find_package( X11 REQUIRED )
-    target_link_libraries( ${TARGET} PUBLIC ${X11_LIBRARIES} )
-    set( SHARE_PATH "${CMAKE_INSTALL_PREFIX}/share/leafy" )
+    set( SHARE_PATH "${CMAKE_INSTALL_PREFIX}/share/austinhorn" )
     
     if( LIB_SUFFIX )
         set( LIB_PATH "lib${LIB_SUFFIX}" )
@@ -127,7 +116,7 @@ elseif( "${CMAKE_SYSTEM_NAME}" MATCHES "Linux" )
         set( LIB_PATH "lib" )
     endif()
 else()
-    set( SHARE_PATH "${CMAKE_INSTALL_PREFIX}/share/leafy" )
+    set( SHARE_PATH "${CMAKE_INSTALL_PREFIX}/share/austinhorn" )
     set( LIB_PATH "lib" )
 endif()
 

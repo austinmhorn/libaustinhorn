@@ -25,8 +25,6 @@ template <
     typedef _Reference                      reference;
     typedef const pointer                   const_pointer;
     typedef const reference                 const_reference;
-    typedef std::__wrap_iter<pointer>       iterator;
-    typedef const std::__wrap_iter<pointer> const_iterator;
 };
 
 template <typename _Tp> struct __input_iterator_base : public __iterator_base<std::input_iterator_tag, _Tp>{};
@@ -36,8 +34,8 @@ template <typename _Tp> struct __bidirectional_iterator_base : public __iterator
 template <typename _Tp> struct __random_access_iterator_base : public __iterator_base<std::random_access_iterator_tag, _Tp>{};
 
 template <typename _Tp>
-class forward_iterator : public __forward_iterator_base<_Tp> { 
-
+class forward_iterator : public __forward_iterator_base<_Tp> 
+{ 
         typedef __forward_iterator_base<_Tp> base;
         typedef typename base::pointer       pointer;
         typedef typename base::reference     reference;
@@ -58,7 +56,11 @@ class forward_iterator : public __forward_iterator_base<_Tp> {
 };
 
 template <long FROM, long TO>
-class range_iterator: public __forward_iterator_base<long> {
+class range_iterator: public __forward_iterator_base<long> 
+{
+        typedef __forward_iterator_base<long>  base;
+        typedef typename base::pointer         pointer;
+        typedef typename base::reference       reference;
     protected:
         long __value = FROM;
     public:
