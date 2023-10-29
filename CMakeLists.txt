@@ -62,7 +62,7 @@ endif ()
 # Tell the compiler to export when necessary.
 set_target_properties( ${TARGET} PROPERTIES DEFINE_SYMBOL AUSTINHORN_EXPORTS )
 
-target_link_libraries( ${TARGET} PUBLIC sfml-graphics sfml-window sfml-system sfml-network sfml-audio ${OPENGL_gl_LIBRARY} )
+target_link_libraries( ${TARGET} PUBLIC ${OPENGL_gl_LIBRARY} )
 
 # Platform- and compiler-specific options.
 if( WIN32 )
