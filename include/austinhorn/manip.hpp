@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 
 
 std::string str_toupper(std::string s)
