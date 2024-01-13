@@ -1,0 +1,36 @@
+{
+    "employees": [
+        {
+            "first": "Austin",
+            "last": "Horn",
+            "id": 2572,
+            "dob": { "month": 7, "day": 7, "year": 1998 },
+            "title": "President",
+            "busy": ["Friday", "Saturday", "Sunday"]
+        },
+        {
+            "first": "Sara",
+            "last": "Stiles",
+            "id": 3333,
+            "dob": { "month": 6, "day": 21, "year": 1999 },
+            "title": "Vice President",
+            "busy": ["Monday", "Friday", "Saturday", "Sunday"]
+        },
+        {
+            "first": "Daniel",
+            "last": "Sanders",
+            "id": 1624,
+            "dob": { "month": 2, "day": 19, "year": 2000 },
+            "title": "Head of Sales",
+            "busy": ["Saturday", "Sunday"]
+        },
+        {
+            "first": "Heather",
+            "last": "Brooks",
+            "id": 7642,
+            "dob": { "month": 4, "day": 2, "year": 1997 },
+            "title": "Head of Marketing",
+            "busy": ["Monday", "Sunday"]
+        }
+    ]
+}

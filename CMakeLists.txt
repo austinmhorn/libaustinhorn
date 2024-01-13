@@ -13,6 +13,8 @@ set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_EXTENSIONS OFF )
 
+find_package( nlohmann_json 3.2.0 REQUIRED )
+
 # Include the Config file
 include( cmake/Config.cmake )
 # Include the Macros file
@@ -22,6 +24,7 @@ include( cmake/Macros.cmake )
 option( AUSTINHORN_BUILD_SHARED_LIBS "Build shared library."            ON )
 option( AUSTINHORN_BUILD_EXAMPLES    "Build examples."                  ON )
 option( AUSTINHORN_BUILD_DOC         "Generate API documentation."      OFF)
+option( AUSTINHORN_DEBUG             "Debug mode"                       OFF)
 set( BUILD_SHARED_LIBS ${AUSTINHORN_BUILD_SHARED_LIBS} )
 
 # Set source and include paths
@@ -41,10 +44,13 @@ set( LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/lib" )
 # Link sources to library
 add_library( ${TARGET} ${CPPS} ${INLS} ${HPPS} )
 
+target_link_libraries( ${TARGET} nlohmann_json::nlohmann_json )
+
 # Include header file directory to target
 target_include_directories( ${TARGET} PUBLIC $<BUILD_INTERFACE:${INCLUDE_PATH}> $<INSTALL_INTERFACE:include/> )
 
 set_target_properties( ${TARGET} PROPERTIES LINKER_LANGUAGE CXX )
+set_target_properties( ${TARGET} PROPERTIES DEFINE_SYMBOL AH_DEBUG )
 
 # Assign target properties
 if( NOT AUSTINHORN_BUILD_SHARED_LIBS )
@@ -120,8 +126,8 @@ else()
     set( LIB_PATH "lib" )
 endif()
 
-if( CMAKE_CXX_COMPILER MATCHES ".*clang[+][+]" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
-    target_compile_options( ${TARGET} PRIVATE -Wall -Wextra -Wshadow -Wconversion -Wsign-conversion -Wunused-parameter -Wno-long-long -pedantic )
+if( CMAKE_CXX_COMPILER MATCHES ".*clang[+][+]" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX )
+    target_compile_options( ${TARGET} PRIVATE -Wall )
 endif()
 
 if( AUSTINHORN_BUILD_EXAMPLES )

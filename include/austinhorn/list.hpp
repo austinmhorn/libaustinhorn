@@ -1,3 +1,91 @@
+/*
+    list synopsis
+
+    template <typename _Tp>
+class list 
+    : private __list_imp<_Tp>
+{
+    private:
+        typedef __list_imp<_Tp> base;
+    public:        
+        typedef typename base::size_type               size_type;
+        typedef typename base::value_type              value_type;
+        typedef typename base::pointer                 pointer;
+        typedef typename base::reference               reference;
+        typedef typename base::const_reference         const_reference;
+        typedef typename base::iterator                iterator;
+        typedef typename base::const_iterator          const_iterator;
+        typedef typename base::reverse_iterator        reverse_iterator;
+        typedef typename base::const_reverse_iterator  const_reverse_iterator;
+    
+        list() : base::__list_imp() {}
+        virtual ~list() = default;
+        list(const list&) = default;
+        list& operator=(const list&) = default;
+        list(list&&) noexcept = default;
+        list& operator=(list&&) noexcept = default;
+
+        void push_front(const value_type& __v);
+        void push_front(value_type&& __v);
+        void push_back(const value_type& __v);
+        void push_back(value_type&& __v);
+        void pop_front();
+        void pop_back();
+        void clear();
+
+        size_type size() const noexcept;
+        size_type max_size() const noexcept;
+
+        bool empty() const noexcept;
+        bool exists(const value_type& __v);
+        const_iterator remove(const value_type& __v);
+        size_type remove_all(const value_type& __v);
+        const_iterator erase_before(const_iterator pos);
+        const_iterator erase_after(const_iterator pos);
+        const_iterator erase(const_iterator pos);
+        size_type erase(const_iterator first, const_iterator last);
+        template <typename UnaryPredicate>
+        size_type erase_if(iterator first, iterator last, UnaryPredicate p);
+        iterator insert(const_iterator pos, const value_type& __v);
+        iterator find(const value_type& __v, int occ = 1);
+        iterator find_first_of(const value_type& __v;
+        iterator find_last_of(const value_type& __v);
+
+        reference front() noexcept;
+        const_reference front() const noexcept;
+        reference back() noexcept;
+        const_reference back() const noexcept;
+
+        iterator begin() noexcept;
+        iterator end() noexcept;
+        const_iterator begin() const noexcept;
+        const_iterator end() const noexcept;
+        reverse_iterator rbegin() noexcept;
+        reverse_iterator rend() noexcept;
+        const_reverse_iterator rbegin() const noexcept;
+        const_reverse_iterator rend() const noexcept;
+        
+        template <typename _Compare = std::less<>>
+        void sort() ;
+        void unique();
+        void reverse() ;
+        
+        void merge( const list<_Tp>& other );
+        template <typename _Compare = std::less<>>
+        void merge( const list<_Tp>& other );
+
+
+};
+
+
+
+
+
+
+
+
+*/
+
 #ifndef __list_hpp
 #define __list_hpp
 
@@ -8,19 +96,262 @@
 
 #define assertm(exp, msg) assert(((void)msg, exp))
 
+template <typename _Tp> struct __list_node;
+template <typename _Tp> struct __list_node_base;
+
+//////////////////////////////////////////////////////////
+/// @struct __list_node_pointer_traits
+/// @brief Pointer traits for list node
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
+template <typename _Tp>
+struct __list_node_pointer_traits
+{
+    typedef __list_node_base<_Tp> * __base_pointer;
+    typedef __list_node<_Tp>      * __node_pointer;
+};
+
+//////////////////////////////////////////////////////////
+/// @struct __list_node_base
+/// @brief Base of list node
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
+template <typename _Tp>
+struct __list_node_base
+{
+    typedef __list_node_pointer_traits<_Tp>         __node_traits;
+    typedef typename __node_traits::__node_pointer  __node_pointer;
+    typedef typename __node_traits::__base_pointer  __base_pointer;
+
+    __node_pointer __prev_;
+    __node_pointer __next_;
+};
+
+//////////////////////////////////////////////////////////
+/// @struct __list_node
+/// @brief List node
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
+template <typename _Tp> 
+struct __list_node 
+    : public __list_node_base<_Tp> 
+{
+    typedef __list_node_base<_Tp>            __base;
+    typedef typename __base::__node_pointer  __node_pointer;
+
+    _Tp __value_;
+
+    __list_node(const _Tp& __v, __node_pointer __restrict__ __p = nullptr, __node_pointer __restrict__ __n = nullptr) 
+        { __value_ = __v; __base::__prev_ = __p; __base::__next_ = __n; }
+
+    friend bool operator<(const __list_node<_Tp>& lhs, const __list_node<_Tp>& rhs) { return lhs.__value_ < rhs.__value_; }
+}; 
+
+template <typename _Tp> class __list_imp;
+template <typename _Tp> class list;
+template <typename _Tp> class __const_list_iterator;
+template <typename _Tp> class __reverse_list_iterator;
+template <typename _Tp> class __const_reverse_list_iterator;
+
+//////////////////////////////////////////////////////////
+/// @class __list_iterator
+/// @brief List node iterator
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
+template <typename _Tp>
+class __list_iterator
+{
+    typedef __list_node_pointer_traits<_Tp>         __node_traits;
+    typedef typename __node_traits::__node_pointer  __node_pointer;
+
+    __node_pointer __pointer_;
+
+    explicit __list_iterator(__node_pointer __restrict__ __p) noexcept : __pointer_(__p) {}
+
+    template<typename> friend class __list_imp;
+    template<typename> friend class list;
+    template<typename> friend class __const_list_iterator;
+public:
+    typedef __input_iterator_base<_Tp>  iterator_category;
+    typedef _Tp                         value_type;
+    typedef value_type &                reference;
+    typedef value_type *                pointer;
+    typedef std::ptrdiff_t              difference_type;
+
+    __list_iterator() noexcept : __pointer_(nullptr) {}
+    __list_iterator(const __const_list_iterator<_Tp>& __iter) noexcept : __pointer_(__iter.__pointer_) {}
+
+    reference operator*() const { return __pointer_->__value_; }
+    pointer operator->() const { return &__pointer_->__value_; }
+
+    __list_iterator& operator++() { __pointer_ = __pointer_->__next_; return *this; }
+    __list_iterator operator++(int) { __list_iterator __t(*this); ++(*this); return __t; }
+    __list_iterator& operator--() { __pointer_ = __pointer_->__prev_; return *this; }
+    __list_iterator operator--(int) { __list_iterator __t(*this); --(*this); return __t; }
+
+    __node_pointer& __as_pointer() { return __pointer_; }
+
+    friend bool operator==(const __list_iterator& __x, const __list_iterator& __y) { return __x.__pointer_ == __y.__pointer_; }
+    friend bool operator!=(const __list_iterator& __x, const __list_iterator& __y) { return !(__x == __y); }
+};
+
+//////////////////////////////////////////////////////////
+/// @class __const_list_iterator
+/// @brief Constant list node iterator
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
+template <typename _Tp>
+class __const_list_iterator
+{
+    typedef __list_node_pointer_traits<_Tp>         __node_traits;
+    typedef typename __node_traits::__node_pointer  __node_pointer;
+
+    __node_pointer __pointer_;
+
+    explicit __const_list_iterator(__node_pointer __restrict__ __p) noexcept : __pointer_(__p) {}
+
+    template<typename> friend class __list_imp;
+    template<typename> friend class list;
+    template<typename> friend class __list_iterator;
+public:
+    typedef __input_iterator_base<_Tp>   iterator_category;
+    typedef _Tp                          value_type;
+    typedef const value_type &           reference;
+    typedef const value_type *           pointer;
+    typedef std::ptrdiff_t               difference_type;
+
+    __const_list_iterator() noexcept : __pointer_(nullptr) { }
+    __const_list_iterator(const __list_iterator<_Tp>& __iter) noexcept : __pointer_(__iter.__pointer_) {}
+
+    reference operator*() const { return __pointer_->__value_; }
+    pointer operator->() const { return &__pointer_->__value_; }
+
+    __const_list_iterator& operator++() { __pointer_ = __pointer_->__next_; return *this; }
+    __const_list_iterator operator++(int) { __const_list_iterator __t(*this); ++(*this); return __t; }
+    __const_list_iterator& operator--() {  __pointer_ = __pointer_->__prev_; return *this; }
+    __const_list_iterator operator--(int) { __const_list_iterator __t(*this); --(*this); return __t; }
+
+    __node_pointer& __as_pointer() { return __pointer_; }
+
+    friend bool operator==(const __const_list_iterator& __x, const __const_list_iterator& __y) { return __x.__pointer_ == __y.__pointer_; }
+    friend bool operator!=(const __const_list_iterator& __x, const __const_list_iterator& __y) { return !(__x == __y); }
+};
+
+
+//////////////////////////////////////////////////////////
+/// @class __reverse_list_iterator
+/// @brief Reverse list node iterator
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
+template <typename _Tp>
+class __reverse_list_iterator
+{
+    typedef __list_node_pointer_traits<_Tp>         __node_traits;
+    typedef typename __node_traits::__node_pointer  __node_pointer;
+
+    __node_pointer __pointer_;
+
+    explicit __reverse_list_iterator(__node_pointer __restrict__ __p) noexcept : __pointer_(__p) {}
+
+    template<typename> friend class __list_imp;
+    template<typename> friend class list;
+    template<typename> friend class __const_reverse_list_iterator;
+public:
+    typedef __input_iterator_base<_Tp>  iterator_category;
+    typedef _Tp                         value_type;
+    typedef value_type &                reference;
+    typedef value_type *                pointer;
+    typedef std::ptrdiff_t              difference_type;
+
+    __reverse_list_iterator() noexcept : __pointer_(nullptr) {}
+    __reverse_list_iterator(const __const_reverse_list_iterator<_Tp>& __iter) noexcept : __pointer_(__iter.__pointer_) {}
+
+    reference operator*() const { return __pointer_->__value_; }
+    pointer operator->() const { return &__pointer_->__value_; }
+
+    __reverse_list_iterator& operator++() { __pointer_ = __pointer_->__prev_; return *this; }
+    __reverse_list_iterator operator++(int) { __reverse_list_iterator __t(*this); ++(*this); return __t; }
+    __reverse_list_iterator& operator--() { __pointer_ = __pointer_->__next_; return *this; }
+    __reverse_list_iterator operator--(int) { __reverse_list_iterator __t(*this); --(*this); return __t; }
+
+    __node_pointer& __as_pointer() { return __pointer_; }
+
+    friend bool operator==(const __reverse_list_iterator& __x, const __reverse_list_iterator& __y) { return __x.__pointer_ == __y.__pointer_; }
+    friend bool operator!=(const __reverse_list_iterator& __x, const __reverse_list_iterator& __y) { return !(__x == __y); }
+};
+
+//////////////////////////////////////////////////////////
+/// @class __const_reverse_list_iterator
+/// @brief Constant reverse list node iterator
+/// @tparam _Tp 
+//////////////////////////////////////////////////////////
+template <typename _Tp>
+class __const_reverse_list_iterator
+{
+    typedef __list_node_pointer_traits<_Tp>         __node_traits;
+    typedef typename __node_traits::__node_pointer  __node_pointer;
+
+    __node_pointer __pointer_;
+
+    explicit __const_reverse_list_iterator(__node_pointer __restrict__ __p) noexcept : __pointer_(__p) {}
+
+    template<typename> friend class __list_imp;
+    template<typename> friend class list;
+public:
+    typedef __input_iterator_base<_Tp>  iterator_category;
+    typedef _Tp                         value_type;
+    typedef const value_type&           reference;
+    typedef const value_type*           pointer;
+    typedef std::ptrdiff_t              difference_type;
+
+    __const_reverse_list_iterator() noexcept : __pointer_(nullptr) {}
+    __const_reverse_list_iterator(const __reverse_list_iterator<_Tp>& __iter) noexcept : __pointer_(__iter.__pointer_) {}
+
+    reference operator*() const { return __pointer_->__value_; }
+    pointer operator->() const { return &__pointer_->__value_; }
+
+    __const_reverse_list_iterator& operator++() { __pointer_ = __pointer_->__prev_; return *this; }
+    __const_reverse_list_iterator operator++(int) { __const_reverse_list_iterator __t(*this); ++(*this); return __t; }
+    __const_reverse_list_iterator& operator--() { __pointer_ = __pointer_->__next_; return *this; }
+    __const_reverse_list_iterator operator--(int) { __const_reverse_list_iterator __t(*this); --(*this); return __t; }
+
+    __node_pointer& __as_pointer() { return __pointer_; }
+
+    friend bool operator==(const __const_reverse_list_iterator& __x, const __const_reverse_list_iterator& __y) { return __x.__pointer_ == __y.__pointer_; }
+    friend bool operator!=(const __const_reverse_list_iterator& __x, const __const_reverse_list_iterator& __y) { return !(__x == __y); }
+};
+
+
+/*
+    typedef _Allocator                               allocator_type;
+    typedef allocator_traits<allocator_type>         __alloc_traits;
+    typedef typename __alloc_traits::size_type       size_type;
+protected:
+    typedef _Tp                                      value_type;
+    typedef value_type&                              reference;
+    typedef const value_type&                        const_reference;
+    typedef typename __alloc_traits::difference_type difference_type;
+    typedef typename __alloc_traits::pointer         pointer;
+    typedef typename __alloc_traits::const_pointer   const_pointer;
+    typedef pointer                                  iterator;
+    typedef const_pointer                            const_iterator;
+*/
+
 //////////////////////////////////////////////////////////
 /// @class __list_imp
 /// @brief Implementation of list
 /// @tparam _Tp 
 //////////////////////////////////////////////////////////
-template <typename _Tp>
+template <typename _Tp> 
 class __list_imp
 {
-    private:
-        typedef __list_node<_Tp>  __node;
-        typedef __node *          __node_pointer;
-        typedef __node **         __env_pointer;
-            
+        typedef __list_node<_Tp>  node_type;
+        typedef node_type *          __node_pointer;
+        typedef node_type **         __env_pointer;
+        typedef std::allocator<_Tp>                    allocator_type;
+        typedef std::allocator_traits<allocator_type>  __alloc_traits;
+        //typedef typename __alloc_traits::size_type     size_type;
+        
         template <typename> friend class list;
     protected:
         typedef std::size_t                                size_type;
@@ -34,15 +365,16 @@ class __list_imp
         typedef __reverse_list_iterator<value_type>        reverse_iterator;
         typedef __const_reverse_list_iterator<value_type>  const_reverse_iterator;
         
-        __node_pointer __head_;
-        __node_pointer __tail_;
-        __env_pointer  __dptr_;
-        size_type      __size_;
+        __node_pointer __head_;  ///< First node in list
+        __node_pointer __tail_;  ///< Last node in list
+        __env_pointer  __dptr_;  ///< Environment node pointer
+        size_type      __size_;  ///< # of nodes in list
 
         __list_imp() 
+            noexcept(std::is_nothrow_default_constructible<std::allocator<_Tp>>::value)
             : __head_(nullptr), __tail_(nullptr), __dptr_(nullptr), __size_(0) {}
         virtual ~__list_imp() 
-            {  clear(); }
+            { clear(); }
 
         __list_imp(const __list_imp&) = default;
         __list_imp& operator=(const __list_imp&) = default;
@@ -56,7 +388,7 @@ class __list_imp
             {
                 if ( __size_ + 1 > max_size() ) { throw std::runtime_error("list reached maximum size"); }
                 
-                __node_pointer __p = new __node(__v);
+                __node_pointer __p = new node_type(__v);
 
                 if ( empty() )
                 {
@@ -82,7 +414,7 @@ class __list_imp
             {
                 if ( __size_ + 1 > max_size() ) { throw std::runtime_error("list reached maximum size"); }
 
-                __node_pointer __p = new __node(std::move(__v));
+                __node_pointer __p = new node_type(std::move(__v));
 
                 if ( empty() )
                 {
@@ -108,7 +440,7 @@ class __list_imp
             {
                 if ( __size_ + 1 > max_size() ) { throw std::runtime_error("list reached maximum size"); }
                     
-                __node_pointer __p = new __node(__v);
+                __node_pointer __p = new node_type(__v);
 
                 if ( empty() )
                 {
@@ -135,7 +467,7 @@ class __list_imp
                 if ( __size_ + 1 > max_size() )
                     throw std::runtime_error("list reached maximum size");
 
-                __node_pointer __p = new __node(std::move(__v));
+                __node_pointer __p = new node_type(std::move(__v));
 
                 if ( empty() )
                 {
@@ -294,7 +626,7 @@ class __list_imp
 
             __node_pointer p = pos.__as_pointer();
             __node_pointer q = pos.__as_pointer()->__next_;
-            __node_pointer n = new __node(__v, p, q);
+            __node_pointer n = new node_type(__v, p, q);
 
             p->__next_ = n;
             q->__prev_ = n;
@@ -516,7 +848,6 @@ class __list_imp
 
         const_iterator __destroy_iter(const_iterator pos)
         {
-            //std::cout << "destroy iter: " << *pos << std::endl;
             if ( pos == const_iterator(__head_) )
                 { pop_front(); return pos; }
             else if ( pos == const_iterator(__tail_) )

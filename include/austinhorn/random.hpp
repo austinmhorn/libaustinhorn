@@ -35,7 +35,7 @@ signed int random_int(signed int min = INT_MIN, signed int max = INT_MAX) noexce
 //////////////////////////////////////////////////////////////////////////////////////////
 unsigned char random_uchar(unsigned char min = 0, unsigned char max = UCHAR_MAX) noexcept {
     std::mt19937 gen32(std::random_device{}());
-    std::uniform_int_distribution<unsigned char> distrib(min, max);
+    std::uniform_int_distribution<unsigned> distrib( (int(min)), (int(max)) );
     return distrib(gen32);
 }
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ unsigned char random_uchar(unsigned char min = 0, unsigned char max = UCHAR_MAX)
 //////////////////////////////////////////////////////////////////////////////////////////
 signed char random_char(signed char min = SCHAR_MIN, signed char max = SCHAR_MAX) noexcept {
     std::mt19937 gen32(std::random_device{}());
-    std::uniform_int_distribution<signed char> distrib(min, max);
+    std::uniform_int_distribution<signed> distrib( (int(min)), (int(max)) );
     return distrib(gen32);
 }
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -57,7 +57,7 @@ signed char random_char(signed char min = SCHAR_MIN, signed char max = SCHAR_MAX
 //////////////////////////////////////////////////////////////////////////////////////////
 unsigned char random_upper(unsigned char min = 65, unsigned char max = 90) noexcept {
     std::mt19937 gen32(std::random_device{}());
-    std::uniform_int_distribution<unsigned char> distrib(min, max);
+    std::uniform_int_distribution<unsigned> distrib( (int(min)), (int(max)) );
     return distrib(gen32);
 }
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -68,7 +68,7 @@ unsigned char random_upper(unsigned char min = 65, unsigned char max = 90) noexc
 //////////////////////////////////////////////////////////////////////////////////////////
 unsigned char random_lower(unsigned char min = 97, unsigned char max = 122) noexcept {
     std::mt19937 gen32(std::random_device{}());
-    std::uniform_int_distribution<unsigned char> distrib(min, max);
+    std::uniform_int_distribution<unsigned> distrib( (int(min)), (int(max)) );
     return distrib(gen32);
 }
 //////////////////////////////////////////////////////////////////////////////////////////

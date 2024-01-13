@@ -30,7 +30,7 @@ struct __binary_tree_node
     typedef __binary_tree_node_base<_Tp>      __base;
     typedef typename __base::__node_pointer   __node_pointer;
 
-    __binary_tree_node(const _Tp& __v, __node_pointer __n = nullptr, __node_pointer __p = nullptr) 
+    __binary_tree_node(const _Tp& __v, __node_pointer __restrict__ __n = nullptr, __node_pointer __restrict__ __p = nullptr) 
         { __value_ = __v; __base::__left_ = __n; __base::__right_ = __p; }
 
     _Tp __value_;
@@ -240,7 +240,7 @@ class __binary_tree_imp
         ///< @param *p Pointer to node being deleted
         ///< @brief Recursive deletion procedure with a public wrapper: void __binary_tree_imp::delete()
         ////////////////////////////////////////////////////////////////////////////
-        void __recursive_destroy(__node_pointer  p)
+        void __recursive_destroy(__node_pointer __restrict__ p)
         {
             if( p )
             {
@@ -255,7 +255,7 @@ class __binary_tree_imp
         ///< @param level Level position of node being printed
         ///< @brief Recursive printing procedure with a public wrapper: void __binary_tree_imp::showLevels()
         ////////////////////////////////////////////////////////////////////////////
-        void __recursive_show_lvls(__node_pointer  p, int level)
+        void __recursive_show_lvls(__node_pointer __restrict__ p, int level)
         {
             if (p)
             {
@@ -264,7 +264,7 @@ class __binary_tree_imp
                 __recursive_show_lvls(p->__left_, level+1);
             }
         }
-        void __recursive_inorder(__node_pointer p)
+        void __recursive_inorder(__node_pointer __restrict__ p)
         {
             if (!p)
                 return;
@@ -272,7 +272,7 @@ class __binary_tree_imp
             std::cout<<p->__value_<<std::endl; ///< Print node data
             __recursive_inorder(p->__right_); ///< Recur on right subtree
         }
-        void __recursive_preorder(__node_pointer p)
+        void __recursive_preorder(__node_pointer __restrict__ p)
         {
             if (!p)
                 return;
@@ -281,7 +281,7 @@ class __binary_tree_imp
             __recursive_preorder(p->__right_); ///< Recur on right subtree
             
         }
-        void __recursive_postorder(__node_pointer p)
+        void __recursive_postorder(__node_pointer __restrict__ p)
         {
             if (!p)
                 return;
@@ -295,7 +295,7 @@ class __binary_tree_imp
         ///< @param *p
         ///< @brief - Counts the number of levels in a __binary_tree_imp or subtree
         ////////////////////////////////////////////////////////////////////////////
-        int __count_lvls(__node_pointer p)
+        int __count_lvls(__node_pointer __restrict__ p)
         {
             __lvls_ = 0;
             __recursive_count_lvls(p, 1);
@@ -308,7 +308,7 @@ class __binary_tree_imp
         ///< @param i 
         ///< @see cntLevels
         ////////////////////////////////////////////////////////////////////////////
-        void __recursive_count_lvls(__node_pointer p, int i)
+        void __recursive_count_lvls(__node_pointer __restrict__ p, int i)
         {
             if(!p)
                 return;
@@ -339,7 +339,7 @@ class __binary_tree_imp
         ///< @brief Rotates a simple, three-node, two-level __binary_tree_imp LEFT while preserving the logical structure of the subtrees
         ///< @param **dp Double pointer to node
         ////////////////////////////////////////////////////////////////////////////
-        void __rotate_left(__node_pointer *dp)
+        void __rotate_left(__node_pointer * __restrict__ dp)
         {
             __node_pointer  p = *dp;
             *dp = p->__right_;
@@ -352,7 +352,7 @@ class __binary_tree_imp
         ///< @brief Rotates a simple, three-node, two-level __binary_tree_imp RIGHT while preserving the logical structure of the subtrees
         ///< @param **dp Double pointer to node
         ////////////////////////////////////////////////////////////////////////////
-        void __rotate_right(__node_pointer *dp)
+        void __rotate_right(__node_pointer * __restrict__ dp)
         {
             __node_pointer  p = *dp;
             *dp=p->__left_;
@@ -360,7 +360,7 @@ class __binary_tree_imp
             (*dp)->__right_=p;
         }
 
-        void __recursive_balance(__node_pointer *dp)
+        void __recursive_balance(__node_pointer * __restrict__ dp)
         {
             if ( !(*dp) )
                 return; // already balanced

@@ -6,8 +6,9 @@
 #include <iostream>       // std::cout
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
-#include <fstream>        // open, select
-#include <cstdlib>        // atoi
+#include <iomanip>          // std::setw, std::setfill
+#include <string>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -18,6 +19,49 @@
 
 #define RESPONSE_YES 'Y'
 #define RESPONSE_NO  'N'
+
+#define BOLD_GREEN "\033[32;1m"
+#define BOLD_RED "\033[31;1m"
+#define RESET "\033[0m"
+
+void __before_main (void) __attribute__((constructor));
+
+void __before_main (void)
+{
+    printf ("hello before main()\n");
+}
+
+/// @brief Fetch a string of empty spaces
+/// @param n # of spaces to inject 
+/// @return String comprised spaces with a length of n
+std::string spacing(unsigned n) noexcept 
+{ 
+    return std::string(n, ' '); 
+}
+
+/// @brief 
+/// @param ch 
+/// @param n 
+/// @return 
+std::string repeat(char ch, unsigned n) noexcept 
+{ 
+    return std::string(n, ch); 
+}
+std::string repeat(const std::string& str, unsigned n) noexcept 
+{ 
+    std::string s;
+    for (int i = 0; i < n; i++)
+        s += str;
+    return s;
+}
+
+/// @brief 
+/// @param n 
+void printnl(unsigned n) noexcept
+{ 
+    for (int i = 0; i < n; i++) 
+        std::cout << std::endl;
+}
 
 // Character-By-Character Print function
 static const void cbcprint(const std::string& str, std::chrono::milliseconds delay = std::chrono::milliseconds(100)) noexcept
@@ -38,7 +82,6 @@ static const void cbcprint(const std::string& str, std::chrono::milliseconds del
     std::cout << std::endl;
 }
 
-
 static const void waitForEnter() noexcept
 {
     std::cout.flush() << "\t*** Press \033[1mENTER\033[0m to continue ***";
@@ -46,9 +89,20 @@ static const void waitForEnter() noexcept
     std::cout.flush();
 }
 
-static const unsigned int waitForPrintable()
+static const unsigned int waitForKey(bool printMessage = true)
 {
-    struct termios oldSettings, newSettings;
+    if ( printMessage )
+    {
+        std::cout.flush() << std::endl;
+        std::cout << spacing(4) << '*' << std::setw(16) << std::setfill('-') << '*' << std::endl;
+        std::cout << spacing(4) << "| PROGRAM PAUSE |" << std::endl;
+        std::cout << spacing(4) << '|' << std::setw(16) << std::setfill('-') << '|' << std::endl;
+        std::cout << spacing(4) << "| Press Any Key |" << std::endl;
+        std::cout << spacing(4) << '*' << std::setw(16) << std::setfill('-') << '*' << std::endl;
+        std::cout.flush() << std::endl;
+    }
+
+    termios oldSettings, newSettings;
 
     tcgetattr( fileno( stdin ), &oldSettings );
     newSettings = oldSettings;
@@ -90,9 +144,12 @@ static const unsigned int waitForPrintable()
     return stoi(std::to_string(c));
 }
 
-static const char getPolarResponse() noexcept
+
+
+char ask_polar(const std::string& question = "") noexcept
 {
-    std::cout.flush() << "\t***Respond Y/N ***\n:";
+    if ( question.size() )
+        std::cout << '[' << BOLD_GREEN << 'Y' << RESET << '/' << BOLD_RED << 'N' << RESET << "] : " << question << std::endl;
     std::string str = "";
     std::getline(std::cin, str);
     if ( str.size() == 1  &&  std::tolower(str.at(0)) == 'y' )
@@ -103,17 +160,6 @@ static const char getPolarResponse() noexcept
         return RESPONSE_NO;
     return RESPONSE_NO;
 }
-
-static const bool isResponseYes(const char response) noexcept
-{
-    return response == RESPONSE_YES;
-}
-
-static const bool isResponseNo(const char response) noexcept
-{
-    return response == RESPONSE_NO;
-}
-
 
 
 
