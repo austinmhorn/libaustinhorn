@@ -1,4 +1,4 @@
-name: CI
+name: CI - libaustinhorn
 
 on: [push, pull_request]
 
@@ -11,27 +11,26 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        - { name: Windows VS2019, os: windows-2019  }
-        - { name: Windows VS2022, os: windows-2022  }
-        - { name: Linux GCC,      os: ubuntu-latest }
-        - { name: Linux Clang,    os: ubuntu-latest, flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ }
-        - { name: MacOS XCode,    os: macos-latest  }
+        - { name: Windows VS2019, os: windows-2019 }
+        - { name: Windows VS2022, os: windows-2022 }
+        - { name: Linux GCC, os: ubuntu-latest }
+        - { name: Linux Clang, os: ubuntu-latest, flags: "-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++" }
+        - { name: MacOS XCode, os: macos-latest }
         config:
-        - { name: Shared, flags: -DBUILD_SHARED_LIBS=ON -DAUSTINHORN_BUILD_SHARED_LIBS=ON }
-        - { name: Static, flags: -DBUILD_SHARED_LIBS=OFF -DAUSTINHORN_BUILD_SHARED_LIBS=OFF }
+        - { name: Shared, flags: "-DBUILD_SHARED_LIBS=ON -DAUSTINHORN_BUILD_SHARED_LIBS=ON" }
+        - { name: Static, flags: "-DBUILD_SHARED_LIBS=OFF -DAUSTINHORN_BUILD_SHARED_LIBS=OFF" }
 
     steps:
     - name: Install Linux Dependencies
-      if: runner.os == 'Linux'
-      run: sudo apt-get update && sudo apt-get install libxrandr-dev libxcursor-dev libudev-dev libopenal-dev libflac-dev libvorbis-dev libgl1-mesa-dev libegl1-mesa-dev
-    
+      if: matrix.platform.os == 'ubuntu-latest'
+      run: sudo apt-get update && sudo apt-get install -y libxrandr-dev libxcursor-dev libudev-dev libopenal-dev libflac-dev libvorbis-dev libgl1-mesa-dev libegl1-mesa-dev
+
     - name: austinhorn - Checkout Code
       uses: actions/checkout@v3
 
     - name: austinhorn - Configure CMake
-      shell: bash
-      run: cmake -S $GITHUB_WORKSPACE -B $GITHUB_WORKSPACE/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/install -DCMAKE_VERBOSE_MAKEFILE=ON -DAUSTINHORN_BUILD_EXAMPLES=ON ${{matrix.platform.flags}} ${{matrix.config.flags}}
+      run: cmake -S $GITHUB_WORKSPACE -B $GITHUB_WORKSPACE/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/install -DCMAKE_VERBOSE_MAKEFILE=ON -DAUSTINHORN_BUILD_EXAMPLES=ON ${{ matrix.platform.flags || '' }} ${{ matrix.config.flags }}
 
     - name: austinhorn - Build
-      shell: bash
       run: cmake --build $GITHUB_WORKSPACE/build --config Release --target install
+
